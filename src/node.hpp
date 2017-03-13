@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include<vector>
+#include "map.hpp"
 using namespace std;
 
 /*
@@ -23,19 +24,21 @@ using namespace std;
  *
  */
 
-class Node
+class Node:public Map
 {
 public:
 
     int row;
     int col;
-    Node(int x, int y):row(x),col(y){};
-	double g;
-	double h;
-	double f;
-	vector<Node> neighbors={};
-	Node previous;
-	int label=(row-1)*col+row; //label node with Number and easy for tracking
+    Node(int x, int y):row(x),col(y){}
+	double g=0;
+	double h=0;
+	double f=0;
+	vector<int> neighborlabels;
+	int previouslabel;
+	vector<Node> neighbors;
+	vector<Node> previous;
+	int label=(row-1)*colSize+col; //label node with Number and easy for tracking
 
 
 
@@ -46,6 +49,7 @@ public:
 			return true;
 		else return false;
 	}
+
 
 };
 

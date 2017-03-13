@@ -13,6 +13,7 @@
 #include <iostream>
 #include <memory>
 #include <cmath>
+#include <algorithm>
 #include "map.hpp"
 #include "node.hpp"
 
@@ -20,14 +21,22 @@
 using namespace std;
 
 
-//Node start(1,1); //start point
+
 //shared_ptr<Node> start=make_shared<node>(1,1);
-//Node goal(5,5); //end point
 //Node current =start;
-vector<Node> openSet;
-vector<Node> closeSet;
-Map map(5,5);
-vector<Node> path;
+//vector<Node> openSet;
+//vector<Node> closedSet;
+//vector<Node> path={};
+
+Map map;
+Node start(1,1); //start point
+Node goal(5,5); //end point
+vector<int> path;
+
+
+
+
+
 
 /*
  * This function is to compute heuristic_estimate cost using Manhattan distance
@@ -37,17 +46,60 @@ int heuristic (Node current, Node goal)
 	return abs(current.col-goal.col)+abs(current.row-goal.row);
 }
 
-void removeElment(vector<Node> Set, Node current)
+
+
+
+
+/*
+bool operator == (Node a, Node b) throw(){
+
+		if (a.row==b.row && a.col==b.col)
+			return true;
+		else return false;
+	}
+*/
+
+void remove(vector<int>& Set, int current)
 {
-	for (vector<Node>::iterator iter =0; iter != Set.end(); iter++)
+	for (vector<int>::iterator i= Set.begin(); i!=Set.end(); i++)
 	{
-		if (*iter==current)
-			Set.erase(iter);
+		if ((*i)==current)
+			Set.erase(i);
 	}
 }
 
 
-void findNeighbors(Node current)
+void removeElement(vector<Node>&Set, Node current)
+{
+	for (vector<Node>::iterator i=Set.begin(); i!=Set.end();i++)
+	{
+		if ((*i)==current)
+			Set.erase(i);
+	}
+}
+
+/*
+void removeElement(vector<Node>& Set, Node current)
+{
+
+	for (vector<Node>::iterator i=Set.begin(); i != Set.end(); i++)
+	{
+
+		if (*i==current)
+		{
+			Set.erase(i);
+
+		}
+
+
+		if (*i==current)
+		{
+			(*i).col=0;
+		    (*i).row=0;
+		}
+*/
+
+void findNeighbors(Node& current)
 {
 	if (current.row !=1)
 		{
@@ -65,7 +117,8 @@ void findNeighbors(Node current)
 			   Node neighbor(current.row, current.col-1);
 			   current.neighbors.push_back(neighbor);
 			}
-		if (current.col != map.colSize)
+
+    if (current.col != map.colSize)
 		{
 			Node neighbor(current.row, current.col+1);
 			current.neighbors.push_back(neighbor);
@@ -73,52 +126,114 @@ void findNeighbors(Node current)
 
 }
 
-void findPath(Node start, Node goal)
-{
-	Node current=start;
-	vector<Node> openSet={start};
-	vector<Node> closeSet={};
-	current.g=0;
-	current.h=heuristic(current,goal);
-	current.f=current.g+current.h;
-	current.previous={};
 
-	while (!openSet.empty())
+vector<Node> dataSet()
+{
+	vector<Node> data;
+	for (int j=1; j<= map.rowSize;j++)
 	{
-		Node winner=start;
-		for (vector<Node>::iterator iter=openSet.begin(); iter !=openSet.end();iter++)
+	for (int i=1; i<= map.colSize; i++)
 		{
-			if ((*iter).f < winner)
-				winner= *iter;
+		  Node temp(j,i);
+		  temp.h= heuristic(temp, goal);
+		  if (j != 1)
+			  temp.neighborlabels.push_back(temp.label-map.rowSize);
+
+		  if (j != map.rowSize)
+		      temp.neighborlabels.push_back(temp.label+map.rowSize);
+
+		  if (i != 1)
+		  	  temp.neighborlabels.push_back(temp.label-map.colSize);
+
+		  if (i != 1)
+			  temp.neighborlabels.push_back(temp.label-map.colSize);
+
+		  data.push_back(temp);
 		}
 
-		//set the node with min F as current node
+     }
+	return data;
+}
+
+vector<Node>data=dataSet();
+
+void findPath()
+{
+
+	start.previouslabel=0;
+	int current=start.label;
+	vector<int> openSet;
+	vector<int> closedSet;
+	openSet.push_back(current);
+
+	data[current].g=0;
+	data[current].f=data[current].g+data[current].h;
+
+	while (! openSet.empty())
+	{
+		int winner=1;
+		for (int i=1; i<=openSet.size(); i++)
+		{
+			if (data[i].f<data[winner].f)
+				winner=i;
+		}
+
 		current=winner;
 
-		/*
-		 * Path reconstruction
-		 */
-		//set start.previous as (0,0)
-		start.previous(0,0);
-
-		if (current == goal)
+		if (current==goal.label)
 		{
-			Node temp=current;
-			path.push_back(temp);
-			while (temp.previous.row!=0)
-			{
-				path.push_back(temp.previous);
-				temp=temp.previous;
 
+			int temp=current;
+			path.push_back(temp);
+
+			while (data[temp].previouslabel != -1)
+			{
+				path.push_back(data[temp].previouslabel);
+				temp=data[temp].previouslabel;
 			}
+
+
+			//print out
+			for (auto x: path)
+			{
+				cout<<x<<" ";
+			}
+
 		}
 
-		/*
-		 * update openSet and closeSet
-		 * remove current from openSet
-		 * add current to closeSet
-		 */
+		remove(openSet,current);
+		closedSet.push_back(current);
 
+		vector<int> neighbors= data[current].neighborlabels;
+
+		for (int j=0; j< neighbors.size(); j++)
+		{
+			int neighbor=neighbors[j];
+
+			vector<int>::iterator iterClose;
+			 iterClose=find (closedSet.begin(),closedSet.end(),neighbor);
+			 if (iterClose == closedSet.end())
+			 {
+				 double tempG=data[current].g+1;
+
+				 vector<int>::iterator iterOpen;
+				 if (iterOpen != openSet.end())
+				 {
+					 if (tempG<data[neighbor].g)
+						 data[neighbor].g=tempG;
+				 }
+				 else
+				 {
+					 data[neighbor].g=tempG;
+					 openSet.push_back(neighbor);
+				 }
+
+				 data[neighbor].f=data[neighbor].g+ data[neighbor].h;
+
+				 data[neighbor].previouslabel=current;
+			 }
+
+		}
 
 
 
@@ -126,34 +241,15 @@ void findPath(Node start, Node goal)
 	}
 
 
-
 }
 
-int main() {
 
-	/*
-	 * overloaded equal operator test
-	 */
-	/*
-	node a(1,1);
-	node b(1,1);
+int main()
+{
+	//vector<Node> data= dataSet();
+	findPath();
 
-	if (a==b) cout<<"a==b";
-	else cout<<"a!=b";
-	*/
+	//cout<<data[1].col;
 
 
-	/*
-	 * Test parameter initializtion functions
-	 */
-	//shared_ptr<> pid = make_shared < PID > (0.1, 0.01, 0.5)
-
-
-
-
-
-
-
-	return 0;
 }
-

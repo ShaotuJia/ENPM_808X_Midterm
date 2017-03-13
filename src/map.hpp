@@ -19,14 +19,14 @@ using namespace std;
 
 class Map{
 public:
-	int rowSize; // the map size in x-axis
-	int colSize; // the map size in y-axis
+	int rowSize =5; // the map size in x-axis
+	int colSize = 5; // the map size in y-axis
 	//node start; //start node
 	//node goal; //goal node
 	//node obstacle;
 	//vector<node> obstacleList;
 
-	Map(int rowmax, int colmax):rowSize(rowmax),colSize(colmax){}
+	//Map(int rowmax, int colmax):rowSize(rowmax),colSize(colmax){}
 	//void getStart(int x,int y);
 	//void getGoal(int x, int y);
 	//void getobstacles();
