@@ -24,10 +24,12 @@ using namespace std;
  *
  */
 
-class Node:public Map
+class Node
 {
 public:
 
+	int colSize=5;
+	int rowSize=5;
     int row;
     int col;
     Node(int x, int y):row(x),col(y){}
@@ -38,10 +40,10 @@ public:
 	int previouslabel;
 	vector<Node> neighbors;
 	vector<Node> previous;
-	int label=(row-1)*colSize+col; //label node with Number and easy for tracking
+	int label=row*colSize+col; //label node with Number and easy for tracking
 
 
-
+#if 0
 	//overload operator == for node comparison
 	friend bool operator == (Node a, Node b) throw(){
 
@@ -49,6 +51,7 @@ public:
 			return true;
 		else return false;
 	}
+#endif
 
 
 };
